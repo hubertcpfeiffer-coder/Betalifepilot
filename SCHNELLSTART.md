@@ -1,8 +1,14 @@
 # 🚀 Mio Life Pilot - Schnellstart
 
-## 🔗 Sofort Testen - Kein Setup nötig!
+## 🔗 Sofort Testen - Nach Aktivierung
 
-**Die Anwendung ist bereits live und kann direkt getestet werden:**
+⚠️ **GitHub Pages muss zuerst aktiviert werden:**
+
+1. Gehe zu [Settings → Pages](https://github.com/hubertcpfeiffer-coder/Betalifepilot/settings/pages)
+2. Wähle unter "Source": **GitHub Actions**
+3. Merge den aktuellen PR in `main`
+
+**Die Anwendung wird dann verfügbar sein unter:**
 
 ### **[👉 https://hubertcpfeiffer-coder.github.io/Betalifepilot/](https://hubertcpfeiffer-coder.github.io/Betalifepilot/)**
 

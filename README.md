@@ -4,7 +4,14 @@ Your intelligent AI life assistant that organizes your life, manages tasks, and 
 
 ## 🔗 Live Demo / Testing
 
-**Test the application here:** [https://hubertcpfeiffer-coder.github.io/Betalifepilot/](https://hubertcpfeiffer-coder.github.io/Betalifepilot/)
+⚠️ **Setup erforderlich**: Die Anwendung wird unter diesem Link verfügbar sein, nachdem GitHub Pages aktiviert und dieser PR gemerged wurde:
+
+**[https://hubertcpfeiffer-coder.github.io/Betalifepilot/](https://hubertcpfeiffer-coder.github.io/Betalifepilot/)**
+
+**Aktivierungsschritte:**
+1. Gehe zu [Settings → Pages](https://github.com/hubertcpfeiffer-coder/Betalifepilot/settings/pages)
+2. Wähle unter "Source": **GitHub Actions**
+3. Merge diesen PR in `main` - die App wird automatisch deployed
 
 For more deployment options, see [TESTING_LINK.md](TESTING_LINK.md)
 
@@ -33,8 +40,14 @@ Mio Life Pilot is a comprehensive AI-powered personal assistant platform featuri
 
 ### GitHub Pages (Current Testing Environment)
 - **URL**: [https://hubertcpfeiffer-coder.github.io/Betalifepilot/](https://hubertcpfeiffer-coder.github.io/Betalifepilot/)
+- **Status**: ⚠️ Aktivierung erforderlich (siehe unten)
 - **Auto-Deploy**: Automatic deployment on every push to `main` branch
 - **Build Status**: [GitHub Actions](https://github.com/hubertcpfeiffer-coder/Betalifepilot/actions)
+
+**Aktivierung:**
+1. Gehe zu [Settings → Pages](https://github.com/hubertcpfeiffer-coder/Betalifepilot/settings/pages)
+2. Setze "Source" auf **GitHub Actions**
+3. Merge PR in `main` Branch
 
 ### Production
 - **Domain**: [mio-lifepilot.app](https://mio-lifepilot.app)

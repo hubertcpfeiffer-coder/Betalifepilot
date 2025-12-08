@@ -2,9 +2,25 @@
 
 ## Live Demo / Testing Environment
 
-Die Anwendung ist live und kann unter folgender URL getestet werden:
+⚠️ **Wichtig**: Die GitHub Pages Deployment wird erst aktiviert, nachdem:
+1. Dieser Pull Request in den `main` Branch gemerged wurde
+2. GitHub Pages in den Repository-Einstellungen aktiviert wurde
 
-### **🔗 [https://hubertcpfeiffer-coder.github.io/Betalifepilot/](https://hubertcpfeiffer-coder.github.io/Betalifepilot/)**
+### Nach der Aktivierung wird die Anwendung verfügbar sein unter:
+
+**🔗 [https://hubertcpfeiffer-coder.github.io/Betalifepilot/](https://hubertcpfeiffer-coder.github.io/Betalifepilot/)**
+
+---
+
+## GitHub Pages Aktivierung
+
+Um GitHub Pages zu aktivieren:
+
+1. Gehe zu [Repository Settings → Pages](https://github.com/hubertcpfeiffer-coder/Betalifepilot/settings/pages)
+2. Unter **Source**: Wähle **GitHub Actions** aus dem Dropdown-Menü
+3. Klicke auf **Save**
+4. Merge diesen Pull Request in den `main` Branch
+5. Der Workflow wird automatisch starten und die App deployen
 
 ---
 

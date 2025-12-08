@@ -1,12 +1,19 @@
 # 📋 Deployment Links - Quick Reference
 
-## ✅ Hauptlink für Tests
+## ⚠️ Setup erforderlich
+
+GitHub Pages muss zuerst aktiviert werden:
+1. [Settings → Pages](https://github.com/hubertcpfeiffer-coder/Betalifepilot/settings/pages)
+2. Source: **GitHub Actions** wählen
+3. PR in `main` mergen
+
+## ✅ Link nach Aktivierung
 
 ```
 https://hubertcpfeiffer-coder.github.io/Betalifepilot/
 ```
 
-### Kopieren und im Browser öffnen:
+### Nach der Aktivierung im Browser öffnen:
 👉 [**https://hubertcpfeiffer-coder.github.io/Betalifepilot/**](https://hubertcpfeiffer-coder.github.io/Betalifepilot/)
 
 ---
