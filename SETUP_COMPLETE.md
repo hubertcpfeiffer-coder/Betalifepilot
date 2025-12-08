@@ -6,6 +6,15 @@ Die Beta-Test-Umgebung für Mio Life Pilot ist **VOLLSTÄNDIG FUNKTIONSFÄHIG** 
 
 **🌐 https://hubertcpfeiffer-coder.github.io/Betalifepilot/**
 
+## ⚠️ WICHTIG: Vor dem Beta-Start
+
+**E-Mail-Adressen konfigurieren!**  
+Siehe [EMAIL_SETUP_REQUIRED.md](EMAIL_SETUP_REQUIRED.md) für Details zur Einrichtung von:
+- `beta-feedback@betalifepilot.com` (Feedback-Kanal)
+- `beta-support@betalifepilot.com` (Support-Kanal)
+
+Diese Adressen sind derzeit Platzhalter und müssen entweder eingerichtet oder durch funktionierende Alternativen ersetzt werden.
+
 ## ✅ Was wurde eingerichtet
 
 ### 1. GitHub Pages Deployment ✅
