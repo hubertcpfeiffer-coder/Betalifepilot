@@ -2,6 +2,12 @@
 
 Your intelligent AI life assistant that organizes your life, manages tasks, and supports all your decisions.
 
+## 🔗 Live Demo / Testing
+
+**Test the application here:** [https://hubertcpfeiffer-coder.github.io/Betalifepilot/](https://hubertcpfeiffer-coder.github.io/Betalifepilot/)
+
+For more deployment options, see [TESTING_LINK.md](TESTING_LINK.md)
+
 ## About
 
 Mio Life Pilot is a comprehensive AI-powered personal assistant platform featuring:
@@ -24,6 +30,11 @@ Mio Life Pilot is a comprehensive AI-powered personal assistant platform featuri
 - **Routing**: React Router v6
 
 ## Deployment
+
+### GitHub Pages (Current Testing Environment)
+- **URL**: [https://hubertcpfeiffer-coder.github.io/Betalifepilot/](https://hubertcpfeiffer-coder.github.io/Betalifepilot/)
+- **Auto-Deploy**: Automatic deployment on every push to `main` branch
+- **Build Status**: [GitHub Actions](https://github.com/hubertcpfeiffer-coder/Betalifepilot/actions)
 
 ### Production
 - **Domain**: [mio-lifepilot.app](https://mio-lifepilot.app)

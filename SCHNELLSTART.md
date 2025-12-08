@@ -1,5 +1,13 @@
 # 🚀 Mio Life Pilot - Schnellstart
 
+## 🔗 Sofort Testen - Kein Setup nötig!
+
+**Die Anwendung ist bereits live und kann direkt getestet werden:**
+
+### **[👉 https://hubertcpfeiffer-coder.github.io/Betalifepilot/](https://hubertcpfeiffer-coder.github.io/Betalifepilot/)**
+
+---
+
 ## Automatisches GitHub Deployment in 3 Schritten
 
 ### Schritt 1: Setup-Script ausführen
