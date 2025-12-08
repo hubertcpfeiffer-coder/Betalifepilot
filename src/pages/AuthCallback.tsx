@@ -1,55 +1,44 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Loader2, CheckCircle, XCircle } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
 
 const AuthCallback: React.FC = () => {
   const navigate = useNavigate();
+  const { isAuthenticated, isLoading, user } = useAuth();
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
   const [message, setMessage] = useState('Anmeldung wird verarbeitet...');
 
   useEffect(() => {
-    const handleCallback = async () => {
-      try {
-        // The AuthContext will handle the auth state change automatically
-        // via the onAuthStateChange listener
-        
-        // Wait a moment for the auth state to be processed
-        await new Promise(resolve => setTimeout(resolve, 2000));
-        
-        // Check if we have a session in localStorage
-        const userId = localStorage.getItem('mio_user_id');
-        
-        if (userId) {
-          setStatus('success');
-          setMessage('Anmeldung erfolgreich! Du wirst weitergeleitet...');
-          
-          // Redirect to home page after a short delay
-          setTimeout(() => {
-            navigate('/', { replace: true });
-          }, 1500);
-        } else {
-          // No session found, likely an error
-          setStatus('error');
-          setMessage('Anmeldung fehlgeschlagen. Bitte versuche es erneut.');
-          
-          // Redirect to home after delay
-          setTimeout(() => {
-            navigate('/', { replace: true });
-          }, 3000);
-        }
-      } catch (error) {
-        console.error('OAuth callback error:', error);
-        setStatus('error');
-        setMessage('Ein Fehler ist aufgetreten. Bitte versuche es erneut.');
-        
-        setTimeout(() => {
-          navigate('/', { replace: true });
-        }, 3000);
-      }
-    };
+    // Wait for auth state to settle
+    if (isLoading) {
+      return;
+    }
 
-    handleCallback();
-  }, [navigate]);
+    if (isAuthenticated && user) {
+      // Successfully authenticated
+      setStatus('success');
+      setMessage('Anmeldung erfolgreich! Du wirst weitergeleitet...');
+      
+      // Redirect to home page after a short delay
+      const timer = setTimeout(() => {
+        navigate('/', { replace: true });
+      }, 1500);
+      
+      return () => clearTimeout(timer);
+    } else {
+      // Authentication failed or session not found
+      setStatus('error');
+      setMessage('Anmeldung fehlgeschlagen. Bitte versuche es erneut.');
+      
+      // Redirect to home after delay
+      const timer = setTimeout(() => {
+        navigate('/', { replace: true });
+      }, 3000);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [isAuthenticated, isLoading, user, navigate]);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50">

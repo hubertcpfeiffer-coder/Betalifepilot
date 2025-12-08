@@ -412,7 +412,13 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   };
 
-  const logout = () => {
+  const logout = async () => {
+    // Sign out from Supabase Auth
+    await supabase.auth.signOut().catch(err => {
+      console.error('Supabase signOut error:', err);
+    });
+    
+    // Clear local storage
     localStorage.removeItem('mio_session');
     localStorage.removeItem('mio_user_id');
     Object.keys(localStorage).forEach(key => { 
