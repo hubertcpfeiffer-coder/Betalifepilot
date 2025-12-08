@@ -16,8 +16,8 @@ https://hubertcpfeiffer-coder.github.io/Betalifepilot/
 | Umgebung | URL | Status |
 |----------|-----|--------|
 | **GitHub Pages** | [hubertcpfeiffer-coder.github.io/Betalifepilot/](https://hubertcpfeiffer-coder.github.io/Betalifepilot/) | ✅ Live (Auto-Deploy) |
-| **Production** | [mio-lifepilot.app](https://mio-lifepilot.app) | 🏢 Production |
-| **Beta** | [mio-lifepilot.com](https://mio-lifepilot.com) | 🧪 Beta Testing |
+| **Production** | [mio-lifepilot.app](https://mio-lifepilot.app) | 🟡 Geplant |
+| **Beta** | [mio-lifepilot.com](https://mio-lifepilot.com) | 🟡 Geplant |
 
 ---
 

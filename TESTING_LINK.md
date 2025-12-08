@@ -14,11 +14,11 @@ Neben GitHub Pages stehen folgende Deployment-Optionen zur Verfügung:
 
 ### Production
 - **Domain**: [mio-lifepilot.app](https://mio-lifepilot.app)
-- **Status**: Production Environment
+- **Status**: Production Environment (wenn konfiguriert)
 
 ### Beta Testing
 - **Domain**: [mio-lifepilot.com](https://mio-lifepilot.com)
-- **Status**: Beta Testing Environment
+- **Status**: Beta Testing Environment (wenn konfiguriert)
 
 ### GitHub Pages (Development/Testing)
 - **URL**: [https://hubertcpfeiffer-coder.github.io/Betalifepilot/](https://hubertcpfeiffer-coder.github.io/Betalifepilot/)
