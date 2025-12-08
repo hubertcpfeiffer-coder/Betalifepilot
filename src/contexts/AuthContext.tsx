@@ -8,6 +8,7 @@ import { sendVerificationEmail, checkEmailVerified } from '@/services/emailVerif
 interface AuthContextType extends AuthState {
   login: (email: string, password: string) => Promise<{ success: boolean; error?: string; isNewDevice?: boolean }>;
   signup: (email: string, password: string, fullName: string) => Promise<{ success: boolean; error?: string; isNewUser?: boolean }>;
+  signInWithOAuth: (provider: 'google' | 'apple' | 'facebook' | 'github') => Promise<{ success: boolean; error?: string }>;
   logout: () => void;
   updateUser: (user: Partial<User>) => Promise<void>;
   refreshUser: () => Promise<void>;
@@ -25,7 +26,132 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [newDeviceAlert, setNewDeviceAlert] = useState(false);
   const [emailVerified, setEmailVerified] = useState(true);
 
-  useEffect(() => { checkSession(); }, []);
+  useEffect(() => { 
+    checkSession();
+    
+    // Listen for auth state changes from Supabase Auth
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log('Supabase auth state changed:', event, session?.user?.email);
+      
+      if (event === 'SIGNED_IN' && session?.user) {
+        // Handle OAuth sign-in callback
+        await handleOAuthSession(session.user);
+      } else if (event === 'SIGNED_OUT') {
+        // Handle sign out
+        setState({ user: null, isAuthenticated: false, isLoading: false });
+      }
+    });
+    
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, []);
+
+  const handleOAuthSession = async (supabaseUser: any) => {
+    try {
+      console.log('Handling OAuth session for user:', supabaseUser.email);
+      
+      // Check if user already exists in our custom users table
+      const { data: existingUser, error: fetchError } = await supabase
+        .from('users')
+        .select('*')
+        .eq('email', supabaseUser.email.toLowerCase())
+        .maybeSingle();
+      
+      let userId: string;
+      
+      if (existingUser) {
+        // User exists, use their ID
+        userId = existingUser.id;
+        console.log('Existing user found:', userId);
+      } else {
+        // Create new user in our custom table
+        userId = crypto.randomUUID();
+        const now = new Date().toISOString();
+        const fullName = supabaseUser.user_metadata?.full_name || supabaseUser.user_metadata?.name || supabaseUser.email.split('@')[0];
+        
+        console.log('Creating new user:', userId, fullName);
+        
+        const { error: insertError } = await supabase.from('users').insert({
+          id: userId,
+          email: supabaseUser.email.toLowerCase(),
+          full_name: fullName,
+          email_verified: true, // OAuth emails are verified
+          created_at: now,
+          updated_at: now,
+          last_login: now,
+          role: 'beta_tester',
+          status: 'pending_review',
+          is_beta_tester: true,
+          onboarding_completed: false,
+          avatar_url: supabaseUser.user_metadata?.avatar_url || null
+        });
+        
+        if (insertError) {
+          console.error('Failed to create user:', insertError);
+          throw new Error('Fehler beim Erstellen des Benutzerprofils');
+        }
+        
+        // Create associated tables (non-blocking)
+        await Promise.all([
+          supabase.from('user_profiles').insert({
+            user_id: userId,
+            display_name: fullName,
+            avatar_setup_completed: false,
+            language: 'de',
+            onboarding_completed: false,
+            total_reward_points: 0
+          }).catch(e => console.log('user_profiles creation skipped:', e.message)),
+          
+          supabase.from('user_settings').insert({
+            user_id: userId,
+            notifications_enabled: true,
+            email_notifications: true,
+            theme: 'light',
+            language: 'de'
+          }).catch(e => console.log('user_settings creation skipped:', e.message)),
+          
+          supabase.from('user_avatars').insert({
+            user_id: userId,
+            photo_urls: supabaseUser.user_metadata?.avatar_url ? [supabaseUser.user_metadata.avatar_url] : [],
+            avatar_style: 'realistic',
+            voice_style: 'friendly',
+            personality_traits: ['Hilfsbereit', 'Freundlich'],
+            is_active: true
+          }).catch(e => console.log('user_avatars creation skipped:', e.message)),
+        ]);
+      }
+      
+      // Set session in localStorage
+      const sessionToken = generateSessionToken();
+      localStorage.setItem('mio_session', sessionToken);
+      localStorage.setItem('mio_user_id', userId);
+      
+      // Register device
+      await registerDevice(userId, sessionToken).catch(e => {
+        console.log('Device registration skipped:', e.message);
+      });
+      
+      // Update last login
+      await supabase.from('users').update({ 
+        last_login: new Date().toISOString() 
+      }).eq('id', userId).catch(() => {});
+      
+      // Fetch the complete user data
+      const { data: userData } = await supabase.from('users').select('*').eq('id', userId).single();
+      
+      if (userData) {
+        const { password_hash, ...safeUser } = userData;
+        setState({ user: safeUser as User, isAuthenticated: true, isLoading: false });
+        setEmailVerified(true); // OAuth users are always verified
+      }
+      
+      console.log('OAuth session handling complete');
+    } catch (e: any) {
+      console.error('Error handling OAuth session:', e);
+      trackError(e instanceof Error ? e : new Error(String(e)), { component: 'AuthContext', action: 'handleOAuthSession' });
+    }
+  };
 
   const checkSession = async () => {
     const sessionToken = localStorage.getItem('mio_session');
@@ -255,6 +381,37 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   };
 
+  const signInWithOAuth = async (provider: 'google' | 'apple' | 'facebook' | 'github') => {
+    try {
+      console.log('Starting OAuth sign-in with:', provider);
+      
+      // Get the current URL origin for redirect
+      const redirectTo = `${window.location.origin}/auth/callback`;
+      
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: provider,
+        options: {
+          redirectTo: redirectTo,
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent',
+          }
+        }
+      });
+      
+      if (error) {
+        console.error('OAuth error:', error);
+        return { success: false, error: error.message || 'OAuth-Anmeldung fehlgeschlagen' };
+      }
+      
+      // OAuth will redirect, so this is a success
+      return { success: true };
+    } catch (e: any) {
+      console.error('OAuth exception:', e);
+      trackError(e instanceof Error ? e : new Error(String(e)), { component: 'AuthContext', action: 'signInWithOAuth', provider });
+      return { success: false, error: e.message || 'OAuth-Anmeldung fehlgeschlagen' };
+    }
+  };
 
   const logout = () => {
     localStorage.removeItem('mio_session');
@@ -287,6 +444,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       ...state, 
       login, 
       signup, 
+      signInWithOAuth,
       logout, 
       updateUser, 
       refreshUser, 
