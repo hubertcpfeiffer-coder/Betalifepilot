@@ -4,14 +4,14 @@ Your intelligent AI life assistant that organizes your life, manages tasks, and 
 
 ## 🔗 Live Demo / Testing
 
-⚠️ **Setup erforderlich**: Die Anwendung wird unter diesem Link verfügbar sein, nachdem GitHub Pages aktiviert und dieser PR gemerged wurde:
+⚠️ **Setup Required**: The application will be available at this link after GitHub Pages is activated and this PR is merged:
 
 **[https://hubertcpfeiffer-coder.github.io/Betalifepilot/](https://hubertcpfeiffer-coder.github.io/Betalifepilot/)**
 
-**Aktivierungsschritte:**
-1. Gehe zu [Settings → Pages](https://github.com/hubertcpfeiffer-coder/Betalifepilot/settings/pages)
-2. Wähle unter "Source": **GitHub Actions**
-3. Merge diesen PR in `main` - die App wird automatisch deployed
+**Activation Steps:**
+1. Go to [Settings → Pages](https://github.com/hubertcpfeiffer-coder/Betalifepilot/settings/pages)
+2. Select **GitHub Actions** under "Source"
+3. Merge this PR to `main` - the app will automatically deploy
 
 For more deployment options, see [TESTING_LINK.md](TESTING_LINK.md)
 
@@ -40,14 +40,14 @@ Mio Life Pilot is a comprehensive AI-powered personal assistant platform featuri
 
 ### GitHub Pages (Current Testing Environment)
 - **URL**: [https://hubertcpfeiffer-coder.github.io/Betalifepilot/](https://hubertcpfeiffer-coder.github.io/Betalifepilot/)
-- **Status**: ⚠️ Aktivierung erforderlich (siehe unten)
+- **Status**: ⚠️ Activation required (see below)
 - **Auto-Deploy**: Automatic deployment on every push to `main` branch
 - **Build Status**: [GitHub Actions](https://github.com/hubertcpfeiffer-coder/Betalifepilot/actions)
 
-**Aktivierung:**
-1. Gehe zu [Settings → Pages](https://github.com/hubertcpfeiffer-coder/Betalifepilot/settings/pages)
-2. Setze "Source" auf **GitHub Actions**
-3. Merge PR in `main` Branch
+**Activation:**
+1. Go to [Settings → Pages](https://github.com/hubertcpfeiffer-coder/Betalifepilot/settings/pages)
+2. Set "Source" to **GitHub Actions**
+3. Merge PR to `main` branch
 
 ### Production
 - **Domain**: [mio-lifepilot.app](https://mio-lifepilot.app)
