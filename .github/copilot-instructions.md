@@ -21,7 +21,7 @@ Mio Life Pilot is a comprehensive AI-powered personal assistant platform built w
 
 ### Backend & Database
 - **Database**: Supabase (PostgreSQL)
-- **Authentication**: Custom JWT-based auth with device tracking
+- **Authentication**: Supabase Auth with custom device tracking
 - **Real-time**: Supabase Realtime subscriptions
 - **Edge Functions**: Supabase Edge Functions (Deno)
 
@@ -56,11 +56,14 @@ Mio Life Pilot is a comprehensive AI-powered personal assistant platform built w
 ### TypeScript
 - Use TypeScript for all new code (`.ts` and `.tsx` files)
 - Type annotations are preferred but not always required (`noImplicitAny: false` in tsconfig)
+  - **Note**: The project has relaxed TypeScript settings for faster development in beta phase
+  - Prefer adding explicit types when possible for better code maintainability
 - Avoid `any` type when possible, but it's allowed when needed
 - Use interfaces for object shapes and types for unions/primitives
 - Path alias `@/*` is configured to map to `./src/*`
 - Unused parameters and locals are allowed (`noUnusedParameters: false`, `noUnusedLocals: false`)
 - Strict null checks are disabled (`strictNullChecks: false`)
+  - **Note**: Always handle null/undefined cases explicitly in your code even though the compiler won't enforce it
 - Skip library checks (`skipLibCheck: true`)
 
 ### React
@@ -129,7 +132,8 @@ Mio Life Pilot is a comprehensive AI-powered personal assistant platform built w
 ## Authentication & Security
 
 ### Authentication Flow
-- Custom JWT-based authentication with device tracking
+- Supabase Auth handles JWT token generation and validation
+- Custom device tracking system monitors user logins across devices
 - Email verification system included
 - Device login notifications for security
 - Session management via Supabase Auth
