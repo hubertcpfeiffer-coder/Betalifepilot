@@ -47,7 +47,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     };
   }, []);
 
-  const handleOAuthSession = async (supabaseUser: any) => {
+  const handleOAuthSession = async (supabaseUser: { email: string; id: string; user_metadata?: Record<string, unknown> }) => {
     try {
       console.log('Handling OAuth session for user:', supabaseUser.email);
       
@@ -145,9 +145,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         setState({ user: safeUser as User, isAuthenticated: true, isLoading: false });
         setEmailVerified(true); // OAuth users are always verified
       }
-      
       console.log('OAuth session handling complete');
-    } catch (e: any) {
+    } catch (e) {
       console.error('Error handling OAuth session:', e);
       trackError(e instanceof Error ? e : new Error(String(e)), { component: 'AuthContext', action: 'handleOAuthSession' });
     }
@@ -216,7 +215,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       setState({ user: safeUser as User, isAuthenticated: true, isLoading: false });
       setEmailVerified(user.email_verified || false);
       return { success: true, isNewDevice };
-    } catch (e: any) {
+    } catch (e) {
       trackError(e instanceof Error ? e : new Error(String(e)), { component: 'AuthContext', action: 'login' });
       return { success: false, error: 'Anmeldung fehlgeschlagen' };
     }
@@ -335,8 +334,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         const { initializeOnboarding } = await import('@/services/onboardingService');
         await initializeOnboarding(userId);
         console.log('Onboarding initialized');
-      } catch (e: any) {
-        console.log('Onboarding init skipped:', e.message);
+      } catch (e) {
+        console.log('Onboarding init skipped:', e instanceof Error ? e.message : String(e));
       }
       
       // Set session
@@ -374,10 +373,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       setEmailVerified(false);
       
       return { success: true, isNewUser: true };
-    } catch (e: any) {
+    } catch (e) {
       console.error('Signup error:', e);
       trackError(e instanceof Error ? e : new Error(String(e)), { component: 'AuthContext', action: 'signup' });
-      return { success: false, error: e.message || 'Registrierung fehlgeschlagen' };
+      return { success: false, error: e instanceof Error ? e.message : 'Registrierung fehlgeschlagen' };
     }
   };
 
@@ -406,10 +405,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       
       // OAuth will redirect, so this is a success
       return { success: true };
-    } catch (e: any) {
+    } catch (e) {
       console.error('OAuth exception:', e);
       trackError(e instanceof Error ? e : new Error(String(e)), { component: 'AuthContext', action: 'signInWithOAuth', provider });
-      return { success: false, error: e.message || 'OAuth-Anmeldung fehlgeschlagen' };
+      return { success: false, error: e instanceof Error ? e.message : 'OAuth-Anmeldung fehlgeschlagen' };
     }
   };
 
