@@ -155,5 +155,5 @@ Ihr Feedback ist unbezahlbar für uns. Gemeinsam machen wir Mio Life Pilot zur b
 ---
 
 **Version:** 1.0.0-beta  
-**Letztes Update:** Dezember 2025  
+**Letztes Update:** 8. Dezember 2025  
 **Status:** Beta Testing Phase
