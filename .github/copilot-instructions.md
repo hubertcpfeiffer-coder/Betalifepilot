@@ -266,7 +266,7 @@ npm run preview      # Preview production build locally
 
 ## German Language Note
 
-Some documentation and comments are in German (particularly in DEPLOYMENT.md and SCHNELLSTART.md). This is intentional for the target audience. When adding new documentation, prefer English for code-related content and German for user-facing documentation when appropriate.
+Some documentation and comments are in German (particularly in `/DEPLOYMENT.md` and `/SCHNELLSTART.md`). This is intentional for the target audience. When adding new documentation, prefer English for code-related content and German for user-facing documentation when appropriate.
 
 ## Deployment
 
@@ -300,7 +300,7 @@ Some documentation and comments are in German (particularly in DEPLOYMENT.md and
 
 For questions about the codebase, refer to:
 1. Existing documentation in `/src/docs`
-2. README.md for project overview
+2. `/README.md` for project overview
 3. Code comments in complex areas
 4. Similar existing implementations in the codebase
 
