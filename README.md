@@ -2,6 +2,14 @@
 
 Your intelligent AI life assistant that organizes your life, manages tasks, and supports all your decisions.
 
+## 🚀 Beta Testing Now Live!
+
+**Try the beta version now:** [https://hubertcpfeiffer-coder.github.io/Betalifepilot/](https://hubertcpfeiffer-coder.github.io/Betalifepilot/)
+
+📖 **New to the beta?** Check out the [Beta Tester Guide](BETA_TESTER_GUIDE.md) for getting started instructions.
+
+---
+
 ## About
 
 Mio Life Pilot is a comprehensive AI-powered personal assistant platform featuring:
@@ -29,7 +37,8 @@ Mio Life Pilot is a comprehensive AI-powered personal assistant platform featuri
 - **Domain**: [mio-lifepilot.app](https://mio-lifepilot.app)
 
 ### Beta Testing
-- **Domain**: [mio-lifepilot.com](https://mio-lifepilot.com)
+- **Live URL**: [https://hubertcpfeiffer-coder.github.io/Betalifepilot/](https://hubertcpfeiffer-coder.github.io/Betalifepilot/)
+- **Beta Guide**: See [BETA_TESTER_GUIDE.md](BETA_TESTER_GUIDE.md)
 - **Repository**: [GitHub](https://github.com/hubertcpfeiffer-coder/Betalifepilot)
 
 ## Getting Started
