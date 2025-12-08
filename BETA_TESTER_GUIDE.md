@@ -69,7 +69,7 @@ Nach der Registrierung werden Sie durch einen interaktiven Onboarding-Prozess ge
 ### Wie Sie Feedback einreichen:
 
 **Per E-Mail:**
-- Senden Sie Ihre Erfahrungsberichte an: [Beta Feedback E-Mail]
+- Senden Sie Ihre Erfahrungsberichte an: beta-feedback@betalifepilot.com
 - Screenshots sind willkommen!
 
 **Im Admin-Bereich:**

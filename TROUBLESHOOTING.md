@@ -239,7 +239,7 @@ Bitte geben Sie folgendes an:
 
 ### Support-Kanäle:
 
-- **E-Mail:** [Beta Support E-Mail einfügen]
+- **E-Mail:** beta-support@betalifepilot.com
 - **GitHub Issues:** https://github.com/hubertcpfeiffer-coder/Betalifepilot/issues
 - **Feedback-System:** Im Admin-Bereich der App (falls verfügbar)
 

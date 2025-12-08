@@ -130,7 +130,9 @@ Folgende Dokumentationen wurden erstellt:
 1. **Beta-Tester einladen:**
    - Teilen Sie die URL: https://hubertcpfeiffer-coder.github.io/Betalifepilot/
    - Verweisen Sie auf BETA_TESTER_GUIDE.md
-   - Erstellen Sie Feedback-Kanäle
+   - **Wichtig:** Konfigurieren Sie E-Mail-Adressen für Feedback/Support:
+     - beta-feedback@betalifepilot.com (in BETA_TESTER_GUIDE.md)
+     - beta-support@betalifepilot.com (in TROUBLESHOOTING.md)
 
 2. **Monitoring einrichten:**
    - GitHub Actions Logs beobachten
