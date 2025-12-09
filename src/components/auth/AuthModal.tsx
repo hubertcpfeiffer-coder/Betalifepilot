@@ -21,7 +21,7 @@ const AuthModal: React.FC<Props> = ({ isOpen, onClose, initialMode = 'login', on
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [faceLoginEmail, setFaceLoginEmail] = useState('');
-  const { login, signup } = useAuth();
+  const { login, signup, signInWithOAuth } = useAuth();
 
   useEffect(() => {
     if (isOpen) { 
@@ -87,6 +87,36 @@ const AuthModal: React.FC<Props> = ({ isOpen, onClose, initialMode = 'login', on
         onSignupComplete?.(); 
       }, 1500);
     }
+  };
+
+  const handleSocialLogin = async (provider: string) => {
+    setIsLoading(true);
+    setError('');
+    setSuccess('');
+    
+    const providerMap: { [key: string]: 'google' | 'apple' | 'facebook' | 'github' } = {
+      google: 'google',
+      apple: 'apple',
+      facebook: 'facebook',
+      github: 'github'
+    };
+    
+    const oauthProvider = providerMap[provider];
+    
+    if (!oauthProvider) {
+      setError(`${provider} Login wird bald verfügbar.`);
+      setIsLoading(false);
+      return;
+    }
+    
+    const result = await signInWithOAuth(oauthProvider);
+    
+    if (!result.success) {
+      setError(result.error || `${provider} Anmeldung fehlgeschlagen`);
+      setIsLoading(false);
+    }
+    // If successful, the user will be redirected to OAuth provider
+    // Loading state will remain until redirect happens
   };
 
   return (
@@ -201,7 +231,7 @@ const AuthModal: React.FC<Props> = ({ isOpen, onClose, initialMode = 'login', on
           {(mode === 'login' || mode === 'signup') && (
             <>
               {/* Social Login */}
-              <SocialLoginButtons onSocialLogin={(p) => setError(`${p} Login wird bald verfügbar.`)} />
+              <SocialLoginButtons onSocialLogin={handleSocialLogin} isLoading={isLoading} />
               
               {/* Face Recognition Button */}
               <button 
