@@ -33,13 +33,14 @@ Mio Life Pilot is a comprehensive AI-powered personal assistant platform featuri
 
 ## Deployment
 
-### Production
-- **Domain**: [mio-lifepilot.app](https://mio-lifepilot.app)
-
-### Beta Testing
+### Current Deployment (GitHub Pages)
 - **Live URL**: [https://hubertcpfeiffer-coder.github.io/Betalifepilot/](https://hubertcpfeiffer-coder.github.io/Betalifepilot/)
 - **Beta Guide**: See [BETA_TESTER_GUIDE.md](BETA_TESTER_GUIDE.md)
 - **Repository**: [GitHub](https://github.com/hubertcpfeiffer-coder/Betalifepilot)
+
+### Future Production Domains
+- **Planned Production**: mio-lifepilot.app (coming soon)
+- **Planned Beta**: mio-lifepilot.com (coming soon)
 
 ## Getting Started
 
