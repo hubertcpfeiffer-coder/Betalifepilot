@@ -99,7 +99,7 @@ Die aktuellen GitHub Pages werden später durch dedizierte Domains ersetzt:
 - **Production:** `mio-lifepilot.app` (geplant)
 - **Beta:** `mio-lifepilot.com` (geplant)
 
-Die Konfiguration ist bereits vorbereitet und kann einfach umgestellt werden.
+> **Hinweis:** Die Marke "Mio Life Pilot" wird für die Produktion verwendet, während "Betalifepilot" der technische Repository-Name für die Beta-Phase ist. Die Konfiguration ist bereits vorbereitet und kann einfach auf die neuen Domains umgestellt werden.
 
 ---
 
@@ -155,7 +155,7 @@ git push origin main
 Bei Fragen oder Problemen:
 
 - **GitHub Issues:** https://github.com/hubertcpfeiffer-coder/Betalifepilot/issues
-- **Beta Feedback:** beta-feedback@betalifepilot.com
+- **Beta Feedback:** beta-feedback@betalifepilot.com (wird eingerichtet)
 - **Dokumentation:** Siehe [README.md](README.md) und [BETA_TESTER_GUIDE.md](BETA_TESTER_GUIDE.md)
 
 ---
