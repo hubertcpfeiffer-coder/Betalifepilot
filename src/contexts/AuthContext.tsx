@@ -384,8 +384,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     try {
       console.log('Starting OAuth sign-in with:', provider);
       
-      // Get the current URL origin for redirect
-      const redirectTo = `${window.location.origin}/auth/callback`;
+      // Get the correct redirect URL with base path for GitHub Pages
+      const basename = import.meta.env.MODE === 'production' ? '/Betalifepilot' : '';
+      const redirectTo = `${window.location.origin}${basename}/auth/callback`;
+      
+      console.log('OAuth redirect URL:', redirectTo);
       
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: provider,
