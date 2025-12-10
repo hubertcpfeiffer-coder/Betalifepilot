@@ -6,7 +6,8 @@ Your intelligent AI life assistant that organizes your life, manages tasks, and 
 
 **Try the beta version now:** [https://hubertcpfeiffer-coder.github.io/Betalifepilot/](https://hubertcpfeiffer-coder.github.io/Betalifepilot/)
 
-📖 **New to the beta?** Check out the [Beta Tester Guide](BETA_TESTER_GUIDE.md) for getting started instructions.
+📖 **New to the beta?** Check out the [Beta Tester Guide](BETA_TESTER_GUIDE.md) for getting started instructions.  
+🔗 **Link Info:** See [LIVE_LINK.md](LIVE_LINK.md) for deployment status and technical details.
 
 ---
 
