@@ -44,12 +44,14 @@ git push -u origin main
 
 **Fertig!** 🎉
 
-Deine App wird automatisch gebaut und deployed.
+Die App wird automatisch gebaut und deployed.
 
 Nach 2-3 Minuten ist sie verfügbar unter:
 ```
-https://DEIN-USERNAME.github.io/Betalifepilot/
+https://hubertcpfeiffer-coder.github.io/Betalifepilot/
 ```
+
+> **Hinweis:** Ersetze `hubertcpfeiffer-coder` mit deinem GitHub Benutzernamen, falls du eine eigene Version deployest.
 
 ---
 

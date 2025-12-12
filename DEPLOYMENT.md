@@ -3,7 +3,7 @@
 ## Setup-Schritte
 
 ### 1. Repository auf GitHub erstellen
-Erstelle ein neues Repository mit dem Namen `mio-lifepilot` auf GitHub.
+Das Repository `Betalifepilot` ist bereits auf GitHub erstellt.
 
 ### 2. Code zu GitHub pushen
 ```bash
@@ -11,7 +11,7 @@ git init
 git add .
 git commit -m "Initial commit"
 git branch -M main
-git remote add origin https://github.com/DEIN-USERNAME/mio-lifepilot.git
+git remote add origin https://github.com/hubertcpfeiffer-coder/Betalifepilot.git
 git push -u origin main
 ```
 
@@ -38,9 +38,9 @@ Füge diese beiden Secrets hinzu:
 ### 5. Deployment
 Der GitHub Actions Workflow startet automatisch bei jedem Push zum `main` Branch.
 
-Die App wird verfügbar sein unter:
+Die App ist verfügbar unter:
 ```
-https://DEIN-USERNAME.github.io/mio-lifepilot/
+https://hubertcpfeiffer-coder.github.io/Betalifepilot/
 ```
 
 ## Was wurde konfiguriert?
@@ -81,4 +81,4 @@ npm run build
 - Warte einige Minuten nach dem ersten Deployment
 
 ### Assets werden nicht geladen
-- Überprüfe, ob der Repository-Name mit dem `base` path in `vite.config.ts` übereinstimmt
+- Überprüfe, ob der Repository-Name (`Betalifepilot`) mit dem `base` path in `vite.config.ts` übereinstimmt
