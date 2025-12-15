@@ -45,12 +45,16 @@ Mio Life Pilot is a comprehensive AI-powered personal assistant platform featuri
 
 ## Getting Started
 
-### Prerequisites
+### 🛠️ For Developers
 
-- Node.js 18+ and npm
-- Supabase account and project
+**Complete setup guide:** See [DEVELOPMENT_SETUP.md](DEVELOPMENT_SETUP.md) for detailed instructions on:
+- Setting up your local development environment
+- Configuring Supabase authentication
+- Running database migrations
+- Setting up OAuth providers (Google, Apple, etc.)
+- Troubleshooting common issues
 
-### Installation
+### Quick Start
 
 ```bash
 # Clone the repository
@@ -61,9 +65,8 @@ cd Betalifepilot
 npm install
 
 # Configure environment variables
-# Create .env file with:
-# VITE_SUPABASE_URL=your_supabase_url
-# VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+cp .env.example .env
+# Edit .env with your Supabase credentials
 
 # Run migrations (via Supabase dashboard or CLI)
 # All migrations are in /supabase/migrations/
@@ -74,6 +77,17 @@ npm run dev
 # Build for production
 npm run build
 ```
+
+### Authentication Setup
+
+The application supports multiple authentication methods:
+
+1. **Email/Password** - Built-in authentication with Supabase
+2. **OAuth Social Login** - Google, Apple, Facebook, GitHub
+3. **Face Recognition** - Optional biometric authentication
+
+📖 **OAuth Configuration**: See [OAUTH_SETUP.md](OAUTH_SETUP.md) for detailed OAuth provider setup  
+🚀 **Quick OAuth Setup**: See [OAUTH_QUICK_SETUP.md](OAUTH_QUICK_SETUP.md) for step-by-step guide
 
 ## Database Setup
 
