@@ -1,8 +1,8 @@
 import { createClient } from '@supabase/supabase-js';
 
 // Initialize database client using environment variables
-const supabaseUrl = "https://crlmactfnqdpjtceadpn.supabase.co";
-const supabaseKey = "sb_publishable_h6b7_0cbWDVISQDBLxXMpA_7JowHhuv";
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || "https://nosbsubdaqqiqktfkztz.supabase.co";
+const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY || "sb_publishable_jeTTXzFXL3g1PpMuIwXUeA_tZ6DnVqq";
 
 if (!supabaseUrl || !supabaseKey) {
   throw new Error('Missing required Supabase environment variables');
