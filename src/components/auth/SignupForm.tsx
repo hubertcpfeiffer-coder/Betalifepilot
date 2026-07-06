@@ -15,7 +15,8 @@ const SignupForm: React.FC<Props> = ({ onSubmit, isLoading }) => {
   const [acceptTerms, setAcceptTerms] = useState(false);
 
   const passwordsMatch = password === confirmPassword;
-  const isValidPassword = password.length >= 6;
+  // R-12 Fix: Client-Minimum an Server-RPC app_register angleichen (>= 8 Zeichen, sonst weak_password).
+  const isValidPassword = password.length >= 8;
   const isFormValid = fullName.trim() && email.trim() && passwordsMatch && isValidPassword && acceptTerms;
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -89,9 +90,9 @@ const SignupForm: React.FC<Props> = ({ onSubmit, isLoading }) => {
             value={password} 
             onChange={(e) => setPassword(e.target.value)}
             className="w-full pl-10 pr-12 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
-            placeholder="Mindestens 6 Zeichen" 
-            required 
-            minLength={6} 
+            placeholder="Mindestens 8 Zeichen"
+            required
+            minLength={8}
             autoComplete="new-password" 
           />
           <button 
@@ -110,7 +111,7 @@ const SignupForm: React.FC<Props> = ({ onSubmit, isLoading }) => {
               <X className="w-3 h-3 text-gray-400" />
             )}
             <p className={`text-xs ${isValidPassword ? 'text-green-600' : 'text-gray-500'}`}>
-              {isValidPassword ? 'Passwort ist gültig' : 'Mindestens 6 Zeichen erforderlich'}
+              {isValidPassword ? 'Passwort ist gültig' : 'Mindestens 8 Zeichen erforderlich'}
             </p>
           </div>
         )}
