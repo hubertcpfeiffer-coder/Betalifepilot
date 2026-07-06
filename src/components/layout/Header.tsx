@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Bot, Bell, Settings, LogOut, Menu, X, Loader2, Sparkles, Brain, UserPlus, Mic, MicOff, ListTodo, Shield } from 'lucide-react';
+import { Bot, Bell, Settings, LogOut, LogIn, Menu, X, Loader2, Sparkles, Brain, Mic, MicOff, ListTodo, Shield } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { mockNotifications, mockPriceAlertNotifications } from '@/data/mockNotifications';
 import NotificationPanel from '@/components/notifications/NotificationPanel';
@@ -93,7 +93,7 @@ const Header: React.FC<Props> = ({ onOpenAuth, onOpenSettings, onOpenAIAgent, on
               ) : (
                 <div className="flex items-center gap-2">
                   {onVoiceCommand && <button onClick={onVoiceCommand} className={`relative p-2 rounded-xl ${isVoiceListening ? 'bg-red-500 text-white' : 'text-gray-500 hover:bg-gray-100'}`}>{isVoiceListening ? <MicOff className="w-5 h-5" /> : <Mic className="w-5 h-5" />}</button>}
-                  <button onClick={onOpenAuth} className="hidden sm:flex items-center gap-2 px-5 py-2 bg-gradient-to-r from-cyan-600 to-blue-600 text-white font-medium rounded-xl hover:from-cyan-700 hover:to-blue-700 shadow-lg shadow-cyan-500/20"><UserPlus className="w-4 h-4" />Registrieren</button>
+                  <button onClick={onOpenAuth} className="hidden sm:flex items-center gap-2 px-5 py-2 bg-gradient-to-r from-cyan-600 to-blue-600 text-white font-medium rounded-xl hover:from-cyan-700 hover:to-blue-700 shadow-lg shadow-cyan-500/20"><LogIn className="w-4 h-4" />Anmelden</button>
                   <button onClick={onOpenAuth} className="sm:hidden px-4 py-2 bg-gradient-to-r from-cyan-600 to-blue-600 text-white font-medium rounded-xl">Anmelden</button>
                 </div>
               )}
