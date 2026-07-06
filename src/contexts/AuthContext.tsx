@@ -1,14 +1,15 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { User, AuthState } from '@/types/auth';
-import { supabase, hashPassword, verifyPassword, generateSessionToken } from '@/lib/supabase';
-import { registerDevice, getNewDeviceNotifications } from '@/services/deviceService';
+import { supabase } from '@/lib/supabase';
 import { trackError } from '@/lib/errorTracking';
 import { sendVerificationEmail, checkEmailVerified } from '@/services/emailVerificationService';
+
+// R-12: Custom-Auth über serverseitige SECURITY-DEFINER-RPCs (app_register/login/session/logout).
+// Kein direkter Zugriff auf public.users (durch DB-Härtung gesperrt), kein Supabase Auth / GoTrue.
 
 interface AuthContextType extends AuthState {
   login: (email: string, password: string) => Promise<{ success: boolean; error?: string; isNewDevice?: boolean }>;
   signup: (email: string, password: string, fullName: string) => Promise<{ success: boolean; error?: string; isNewUser?: boolean }>;
-  signInWithOAuth: (provider: 'google' | 'apple' | 'facebook' | 'github') => Promise<{ success: boolean; error?: string }>;
   logout: () => void;
   updateUser: (user: Partial<User>) => Promise<void>;
   refreshUser: () => Promise<void>;
@@ -21,162 +22,52 @@ interface AuthContextType extends AuthState {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+const SESSION_KEY = 'mio_session';
+
+function mapUser(u: Record<string, unknown>): User {
+  return {
+    id: String(u.id),
+    email: String(u.email),
+    full_name: (u.full_name as string) ?? undefined,
+    role: (u.role as User['role']) ?? undefined,
+    status: (u.status as User['status']) ?? undefined,
+    email_verified: Boolean(u.email_verified),
+    onboarding_completed: Boolean(u.onboarding_completed),
+  };
+}
+
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [state, setState] = useState<AuthState>({ user: null, isAuthenticated: false, isLoading: true });
   const [newDeviceAlert, setNewDeviceAlert] = useState(false);
   const [emailVerified, setEmailVerified] = useState(true);
 
-  useEffect(() => { 
-    checkSession();
-    
-    // Listen for auth state changes from Supabase Auth
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log('Supabase auth state changed:', event, session?.user?.email);
-      
-      if (event === 'SIGNED_IN' && session?.user) {
-        // Handle OAuth sign-in callback
-        await handleOAuthSession(session.user);
-      } else if (event === 'SIGNED_OUT') {
-        // Handle sign out
-        setState({ user: null, isAuthenticated: false, isLoading: false });
-      }
-    });
-    
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, []);
-
-  const handleOAuthSession = async (supabaseUser: { email: string; id: string; user_metadata?: Record<string, unknown> }) => {
-    try {
-      console.log('Handling OAuth session for user:', supabaseUser.email);
-      
-      // Check if user already exists in our custom users table
-      const { data: existingUser, error: fetchError } = await supabase
-        .from('users')
-        .select('*')
-        .eq('email', supabaseUser.email.toLowerCase())
-        .maybeSingle();
-      
-      let userId: string;
-      
-      if (existingUser) {
-        // User exists, use their ID
-        userId = existingUser.id;
-        console.log('Existing user found:', userId);
-      } else {
-        // Create new user in our custom table
-        userId = crypto.randomUUID();
-        const now = new Date().toISOString();
-        const fullName = supabaseUser.user_metadata?.full_name || supabaseUser.user_metadata?.name || supabaseUser.email.split('@')[0];
-        
-        console.log('Creating new user:', userId, fullName);
-        
-        const { error: insertError } = await supabase.from('users').insert({
-          id: userId,
-          email: supabaseUser.email.toLowerCase(),
-          full_name: fullName,
-          email_verified: true, // OAuth emails are verified
-          created_at: now,
-          updated_at: now,
-          last_login: now,
-          role: 'beta_tester',
-          status: 'pending_review',
-          is_beta_tester: true,
-          onboarding_completed: false,
-          avatar_url: supabaseUser.user_metadata?.avatar_url || null
-        });
-        
-        if (insertError) {
-          console.error('Failed to create user:', insertError);
-          throw new Error('Fehler beim Erstellen des Benutzerprofils');
-        }
-        
-        // Create associated tables (non-blocking)
-        await Promise.all([
-          supabase.from('user_profiles').insert({
-            user_id: userId,
-            display_name: fullName,
-            avatar_setup_completed: false,
-            language: 'de',
-            onboarding_completed: false,
-            total_reward_points: 0
-          }).catch(e => console.log('user_profiles creation skipped:', e.message)),
-          
-          supabase.from('user_settings').insert({
-            user_id: userId,
-            notifications_enabled: true,
-            email_notifications: true,
-            theme: 'light',
-            language: 'de'
-          }).catch(e => console.log('user_settings creation skipped:', e.message)),
-          
-          supabase.from('user_avatars').insert({
-            user_id: userId,
-            photo_urls: supabaseUser.user_metadata?.avatar_url ? [supabaseUser.user_metadata.avatar_url] : [],
-            avatar_style: 'realistic',
-            voice_style: 'friendly',
-            personality_traits: ['Hilfsbereit', 'Freundlich'],
-            is_active: true
-          }).catch(e => console.log('user_avatars creation skipped:', e.message)),
-        ]);
-      }
-      
-      // Set session in localStorage
-      const sessionToken = generateSessionToken();
-      localStorage.setItem('mio_session', sessionToken);
-      localStorage.setItem('mio_user_id', userId);
-      
-      // Register device
-      await registerDevice(userId, sessionToken).catch(e => {
-        console.log('Device registration skipped:', e.message);
-      });
-      
-      // Update last login
-      await supabase.from('users').update({ 
-        last_login: new Date().toISOString() 
-      }).eq('id', userId).catch(() => {});
-      
-      // Fetch the complete user data
-      const { data: userData } = await supabase.from('users').select('*').eq('id', userId).single();
-      
-      if (userData) {
-        const { password_hash, ...safeUser } = userData;
-        setState({ user: safeUser as User, isAuthenticated: true, isLoading: false });
-        setEmailVerified(true); // OAuth users are always verified
-      }
-      console.log('OAuth session handling complete');
-    } catch (e) {
-      console.error('Error handling OAuth session:', e);
-      trackError(e instanceof Error ? e : new Error(String(e)), { component: 'AuthContext', action: 'handleOAuthSession' });
-    }
-  };
+  useEffect(() => { checkSession(); }, []);
 
   const checkSession = async () => {
-    const sessionToken = localStorage.getItem('mio_session');
-    const userId = localStorage.getItem('mio_user_id');
-    if (sessionToken && userId) {
+    const token = localStorage.getItem(SESSION_KEY);
+    if (token) {
       try {
-        const { data, error } = await supabase.from('users').select('*').eq('id', userId).single();
-        if (data && !error) {
-          const { password_hash, ...safeUser } = data;
-          setState({ user: safeUser as User, isAuthenticated: true, isLoading: false });
-          setEmailVerified(data.email_verified || false);
-          const notifications = await getNewDeviceNotifications(userId);
-          if (notifications.length > 0) setNewDeviceAlert(true);
+        const { data, error } = await supabase.rpc('app_session_user', { p_session_token: token });
+        const res = data as any;
+        if (!error && res?.ok && res.user) {
+          const user = mapUser(res.user);
+          setState({ user, isAuthenticated: true, isLoading: false });
+          setEmailVerified(Boolean(user.email_verified));
           return;
         }
       } catch (e) { console.error('Session check failed:', e); }
     }
-    localStorage.removeItem('mio_session');
+    localStorage.removeItem(SESSION_KEY);
     localStorage.removeItem('mio_user_id');
     setState({ user: null, isAuthenticated: false, isLoading: false });
   };
 
   const checkVerification = async () => {
     if (!state.user) return;
-    const verified = await checkEmailVerified(state.user.id);
-    setEmailVerified(verified);
+    try {
+      const verified = await checkEmailVerified(state.user.id);
+      setEmailVerified(verified);
+    } catch { /* Folge-Ticket R-12b: Verifikations-RPC */ }
   };
 
   const resendVerification = async () => {
@@ -184,37 +75,31 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     return sendVerificationEmail(state.user.id, state.user.email);
   };
 
-  const refreshUser = async () => {
-    const userId = localStorage.getItem('mio_user_id');
-    if (!userId) return;
-    try {
-      const { data } = await supabase.from('users').select('*').eq('id', userId).single();
-      if (data) {
-        const { password_hash, ...safeUser } = data;
-        setState(s => ({ ...s, user: safeUser as User }));
-        setEmailVerified(data.email_verified || false);
-      }
-    } catch (e) { console.error('Refresh error:', e); }
-  };
+  const refreshUser = async () => { await checkSession(); };
 
   const clearNewDeviceAlert = () => setNewDeviceAlert(false);
 
   const login = async (email: string, password: string) => {
     try {
-      const { data: user, error } = await supabase.from('users').select('*').eq('email', email.toLowerCase()).single();
-      if (error || !user) return { success: false, error: 'Benutzer nicht gefunden' };
-      const isValid = await verifyPassword(password, user.password_hash);
-      if (!isValid) return { success: false, error: 'Falsches Passwort' };
-      const sessionToken = generateSessionToken();
-      localStorage.setItem('mio_session', sessionToken);
-      localStorage.setItem('mio_user_id', user.id);
-      const { isNewDevice } = await registerDevice(user.id, sessionToken);
-      if (isNewDevice) setNewDeviceAlert(true);
-      await supabase.from('users').update({ last_login: new Date().toISOString() }).eq('id', user.id).catch(() => {});
-      const { password_hash, ...safeUser } = user;
-      setState({ user: safeUser as User, isAuthenticated: true, isLoading: false });
-      setEmailVerified(user.email_verified || false);
-      return { success: true, isNewDevice };
+      const { data, error } = await supabase.rpc('app_login', {
+        p_email: email,
+        p_password: password,
+        p_device_id: 'web',
+        p_device_name: navigator.userAgent,
+      });
+      const res = data as any;
+      if (error) return { success: false, error: 'Anmeldung fehlgeschlagen' };
+      if (!res?.ok) {
+        return {
+          success: false,
+          error: res?.error === 'invalid_credentials' ? 'E-Mail oder Passwort ist falsch' : 'Anmeldung fehlgeschlagen',
+        };
+      }
+      localStorage.setItem(SESSION_KEY, res.session_token);
+      const user = mapUser(res.user);
+      setState({ user, isAuthenticated: true, isLoading: false });
+      setEmailVerified(Boolean(user.email_verified));
+      return { success: true, isNewDevice: false };
     } catch (e) {
       trackError(e instanceof Error ? e : new Error(String(e)), { component: 'AuthContext', action: 'login' });
       return { success: false, error: 'Anmeldung fehlgeschlagen' };
@@ -223,210 +108,39 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const signup = async (email: string, password: string, fullName: string) => {
     try {
-      console.log('Starting signup for:', email);
-      
-      // Check if email already exists
-      const { data: existing } = await supabase
-        .from('users')
-        .select('id')
-        .eq('email', email.toLowerCase())
-        .maybeSingle();
-      
-      if (existing) {
-        return { success: false, error: 'Diese E-Mail ist bereits registriert' };
+      const { data, error } = await supabase.rpc('app_register', {
+        p_email: email,
+        p_password: password,
+        p_full_name: fullName,
+      });
+      const reg = data as any;
+      if (error) return { success: false, error: 'Registrierung fehlgeschlagen' };
+      if (!reg?.ok) {
+        const map: Record<string, string> = {
+          email_exists: 'Diese E-Mail ist bereits registriert',
+          weak_password: 'Passwort zu kurz (mindestens 8 Zeichen)',
+          invalid_email: 'Ungültige E-Mail-Adresse',
+        };
+        return { success: false, error: map[reg?.error] || 'Registrierung fehlgeschlagen' };
       }
-
-      // Hash password
-      const passwordHash = await hashPassword(password);
-      const userId = crypto.randomUUID();
-      const now = new Date().toISOString();
-      
-      console.log('Creating user with ID:', userId);
-      
-      // Create user with only essential fields that definitely exist
-      const { error: insertError } = await supabase.from('users').insert({
-        id: userId, 
-        email: email.toLowerCase(), 
-        password_hash: passwordHash, 
-        full_name: fullName,
-        email_verified: false, 
-        created_at: now, 
-        updated_at: now, 
-        last_login: now,
-        role: 'beta_tester', 
-        status: 'pending_review', 
-        is_beta_tester: true, 
-        onboarding_completed: false
-      });
-      
-      if (insertError) {
-        console.error('User insert error:', insertError);
-        return { success: false, error: `Registrierung fehlgeschlagen: ${insertError.message}` };
-      }
-      
-      console.log('User created successfully');
-      
-      // Create user_profiles record (new table)
-      await supabase.from('user_profiles').insert({
-        user_id: userId,
-        display_name: fullName,
-        avatar_setup_completed: false,
-        avatar_photos: [],
-        avatar_style_preferences: {},
-        language: 'de',
-        onboarding_completed: false,
-        total_reward_points: 0
-      }).catch(e => {
-        console.log('user_profiles creation skipped:', e.message);
-      });
-      
-      // Create user_avatars record (new table)
-      await supabase.from('user_avatars').insert({
-        user_id: userId,
-        photo_urls: [],
-        avatar_style: 'realistic',
-        voice_style: 'friendly',
-        personality_traits: ['Hilfsbereit', 'Freundlich'],
-        speaking_style: 'casual',
-        clothing_style: 'casual',
-        background_style: 'gradient',
-        accessories: [],
-        custom_colors: {},
-        is_active: true
-      }).catch(e => {
-        console.log('user_avatars creation skipped:', e.message);
-      });
-      
-      // Create user_settings (optional, don't block on failure)
-      await supabase.from('user_settings').insert({ 
-        user_id: userId, 
-        notifications_enabled: true, 
-        email_notifications: true, 
-        theme: 'light', 
-        language: 'de' 
-      }).catch(e => {
-        console.log('user_settings creation skipped:', e.message);
-      });
-      
-      // Create user_knowledge_profiles (optional)
-      await supabase.from('user_knowledge_profiles').insert({ 
-        user_id: userId 
-      }).catch(e => {
-        console.log('user_knowledge_profiles creation skipped:', e.message);
-      });
-      
-      // Create iq_profiles (optional)
-      await supabase.from('iq_profiles').insert({ 
-        user_id: userId 
-      }).catch(e => {
-        console.log('iq_profiles creation skipped:', e.message);
-      });
-      
-      // Create mio_profiles (optional)
-      await supabase.from('mio_profiles').insert({ 
-        user_id: userId 
-      }).catch(e => {
-        console.log('mio_profiles creation skipped:', e.message);
-      });
-      
-      // Initialize onboarding progress (optional)
-      try {
-        const { initializeOnboarding } = await import('@/services/onboardingService');
-        await initializeOnboarding(userId);
-        console.log('Onboarding initialized');
-      } catch (e) {
-        console.log('Onboarding init skipped:', e instanceof Error ? e.message : String(e));
-      }
-      
-      // Set session
-      const sessionToken = generateSessionToken();
-      localStorage.setItem('mio_session', sessionToken);
-      localStorage.setItem('mio_user_id', userId);
-      
-      // Register device (optional)
-      await registerDevice(userId, sessionToken).catch(e => {
-        console.log('Device registration skipped:', e.message);
-      });
-      
-      // Send verification email (optional, don't wait)
-      sendVerificationEmail(userId, email.toLowerCase()).catch(e => {
-        console.log('Verification email skipped:', e.message);
-      });
-      
-      console.log('Signup completed successfully');
-      
-      // Set state
-      setState({ 
-        user: { 
-          id: userId, 
-          email: email.toLowerCase(), 
-          full_name: fullName, 
-          created_at: now, 
-          role: 'beta_tester', 
-          status: 'pending_review', 
-          is_beta_tester: true,
-          avatar_setup_completed: false
-        }, 
-        isAuthenticated: true, 
-        isLoading: false 
-      });
-      setEmailVerified(false);
-      
+      // Nach erfolgreicher Registrierung direkt einloggen (Session erstellen)
+      const loginRes = await login(email, password);
+      if (!loginRes.success) return { success: false, error: loginRes.error };
       return { success: true, isNewUser: true };
     } catch (e) {
-      console.error('Signup error:', e);
       trackError(e instanceof Error ? e : new Error(String(e)), { component: 'AuthContext', action: 'signup' });
-      return { success: false, error: e instanceof Error ? e.message : 'Registrierung fehlgeschlagen' };
-    }
-  };
-
-  const signInWithOAuth = async (provider: 'google' | 'apple' | 'facebook' | 'github') => {
-    try {
-      console.log('Starting OAuth sign-in with:', provider);
-      
-      // Get the correct redirect URL with base path for GitHub Pages
-      const basename = import.meta.env.MODE === 'production' ? '/Betalifepilot' : '';
-      const redirectTo = `${window.location.origin}${basename}/auth/callback`;
-      
-      console.log('OAuth redirect URL:', redirectTo);
-      
-      const { data, error } = await supabase.auth.signInWithOAuth({
-        provider: provider,
-        options: {
-          redirectTo: redirectTo,
-          queryParams: {
-            access_type: 'offline',
-            prompt: 'consent',
-          }
-        }
-      });
-      
-      if (error) {
-        console.error('OAuth error:', error);
-        return { success: false, error: error.message || 'OAuth-Anmeldung fehlgeschlagen' };
-      }
-      
-      // OAuth will redirect, so this is a success
-      return { success: true };
-    } catch (e) {
-      console.error('OAuth exception:', e);
-      trackError(e instanceof Error ? e : new Error(String(e)), { component: 'AuthContext', action: 'signInWithOAuth', provider });
-      return { success: false, error: e instanceof Error ? e.message : 'OAuth-Anmeldung fehlgeschlagen' };
+      return { success: false, error: 'Registrierung fehlgeschlagen' };
     }
   };
 
   const logout = async () => {
-    // Sign out from Supabase Auth
-    await supabase.auth.signOut().catch(err => {
-      console.error('Supabase signOut error:', err);
-    });
-    
-    // Clear local storage
-    localStorage.removeItem('mio_session');
+    const token = localStorage.getItem(SESSION_KEY);
+    if (token) {
+      try { await supabase.rpc('app_logout', { p_session_token: token }); } catch { /* ignore */ }
+    }
+    localStorage.removeItem(SESSION_KEY);
     localStorage.removeItem('mio_user_id');
-    Object.keys(localStorage).forEach(key => { 
-      if (key.startsWith('mio_welcome_')) localStorage.removeItem(key); 
-    });
+    Object.keys(localStorage).forEach((key) => { if (key.startsWith('mio_welcome_')) localStorage.removeItem(key); });
     setState({ user: null, isAuthenticated: false, isLoading: false });
     setNewDeviceAlert(false);
     setEmailVerified(true);
@@ -434,33 +148,23 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const updateUser = async (updates: Partial<User>) => {
     if (!state.user) return;
-    try {
-      const { error } = await supabase
-        .from('users')
-        .update({ ...updates, updated_at: new Date().toISOString() })
-        .eq('id', state.user.id);
-      if (!error) {
-        setState(s => ({ ...s, user: s.user ? { ...s.user, ...updates } : null }));
-      }
-    } catch (e) { 
-      console.error('Update error:', e); 
-    }
+    // TODO(R-12b): Persistenz über app_update_profile-RPC. Vorerst nur lokaler State.
+    setState((s) => ({ ...s, user: s.user ? { ...s.user, ...updates } : null }));
   };
 
   return (
-    <AuthContext.Provider value={{ 
-      ...state, 
-      login, 
-      signup, 
-      signInWithOAuth,
-      logout, 
-      updateUser, 
-      refreshUser, 
-      newDeviceAlert, 
-      clearNewDeviceAlert, 
-      emailVerified, 
-      checkVerification, 
-      resendVerification 
+    <AuthContext.Provider value={{
+      ...state,
+      login,
+      signup,
+      logout,
+      updateUser,
+      refreshUser,
+      newDeviceAlert,
+      clearNewDeviceAlert,
+      emailVerified,
+      checkVerification,
+      resendVerification,
     }}>
       {children}
     </AuthContext.Provider>
