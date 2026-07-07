@@ -33,7 +33,7 @@ const DataSyncStatus: React.FC<Props> = ({ compact = false }) => {
     try {
       const [knowledgeRes, iqRes, contactsRes, tasksRes] = await Promise.all([
         supabase.from('user_knowledge_profiles').select('id').eq('user_id', user.id).maybeSingle(),
-        supabase.from('user_iq_tests').select('id').eq('user_id', user.id),
+        supabase.from('iq_test_results').select('id').eq('user_id', user.id),
         supabase.from('contacts').select('id').eq('user_id', user.id),
         supabase.from('tasks').select('id').eq('user_id', user.id)
       ]);
