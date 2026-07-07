@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
-import { Mail, Calendar, Users, Wallet, Share2, ShoppingCart, Check, Link, Eye, Search, Brain, Sparkles, ListTodo } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Mail, Calendar, Users, Wallet, Share2, ShoppingCart, Check, Link, Eye, Search, Brain, Sparkles, ListTodo, Clock } from 'lucide-react';
 import ConnectionModal from '../connections/ConnectionModal';
 import PriceComparisonPanel from '../shopping/PriceComparisonPanel';
+import { startGoogleConnect, getCalendarEvents, readGoogleReturnStatus, CalendarEvent } from '@/services/googleService';
 
 interface OrganisationFeaturesProps {
   onOpenContacts?: () => void;
@@ -31,11 +32,43 @@ const colorClasses: Record<string, { bg: string; text: string; border: string; g
   violet: { bg: 'bg-violet-100', text: 'text-violet-600', border: 'border-violet-200', gradient: 'from-violet-500 to-purple-600' },
 };
 
+function formatEventDate(iso: string | null, allDay: boolean): string {
+  if (!iso) return '';
+  const d = new Date(iso);
+  if (allDay) return d.toLocaleDateString('de-DE', { weekday: 'short', day: '2-digit', month: 'short' });
+  return d.toLocaleDateString('de-DE', { weekday: 'short', day: '2-digit', month: 'short' }) + ', ' +
+    d.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
+}
+
 const OrganisationFeatures: React.FC<OrganisationFeaturesProps> = ({ onOpenContacts, onOpenKnowledge, onOpenTasks }) => {
   const [modalOpen, setModalOpen] = useState(false);
   const [modalCategory, setModalCategory] = useState<'email' | 'calendar' | 'social' | 'contacts' | 'shopping' | null>(null);
   const [connectedServices, setConnectedServices] = useState<Record<string, string[]>>({});
   const [priceCompareOpen, setPriceCompareOpen] = useState(false);
+
+  // Echte Google-Kalender-Anbindung (WP-3)
+  const [googleConnected, setGoogleConnected] = useState(false);
+  const [googleEvents, setGoogleEvents] = useState<CalendarEvent[]>([]);
+  const [googleMsg, setGoogleMsg] = useState<string>('');
+  const [googleLoading, setGoogleLoading] = useState(false);
+
+  useEffect(() => {
+    const ret = readGoogleReturnStatus();
+    if (ret === 'connected') setGoogleMsg('Google-Kalender verbunden! Deine Termine werden geladen …');
+    if (ret === 'error') setGoogleMsg('Google-Verbindung fehlgeschlagen. Bitte erneut versuchen.');
+
+    let cancelled = false;
+    (async () => {
+      setGoogleLoading(true);
+      const res = await getCalendarEvents();
+      if (cancelled) return;
+      setGoogleConnected(res.connected);
+      setGoogleEvents(res.events || []);
+      if (res.connected && ret === 'connected') setGoogleMsg('Google-Kalender verbunden ✓');
+      setGoogleLoading(false);
+    })();
+    return () => { cancelled = true; };
+  }, []);
 
   const handleOpenModal = (category: 'email' | 'calendar' | 'social' | 'contacts' | 'shopping') => {
     setModalCategory(category);
@@ -59,10 +92,18 @@ const OrganisationFeatures: React.FC<OrganisationFeaturesProps> = ({ onOpenConta
           </h2>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">Mio übernimmt alle deine organisatorischen Aufgaben.</p>
         </div>
+
+        {googleMsg && (
+          <div className="max-w-xl mx-auto mb-6 p-3 rounded-xl bg-blue-50 border border-blue-200 text-blue-700 text-sm text-center">
+            {googleMsg}
+          </div>
+        )}
+
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {features.map((f, i) => {
             const colors = colorClasses[f.color] || colorClasses.cyan;
-            const connected = isConnected(f.modalType);
+            const isCal = f.modalType === 'calendar';
+            const connected = isCal ? googleConnected : isConnected(f.modalType);
             return (
               <div key={i} className={`p-6 bg-white rounded-2xl border ${colors.border} shadow-lg hover:shadow-xl transition-all group relative`}>
                 {connected && <div className="absolute top-3 right-3"><div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center"><Check className="w-4 h-4 text-green-600" /></div></div>}
@@ -73,9 +114,10 @@ const OrganisationFeatures: React.FC<OrganisationFeaturesProps> = ({ onOpenConta
                 <p className="text-gray-600 text-sm mb-4">{f.desc}</p>
                 <div className="flex gap-2 flex-wrap">
                   {f.hasModal && f.modalType && (
-                    <button onClick={() => handleOpenModal(f.modalType!)}
+                    <button
+                      onClick={() => (isCal ? startGoogleConnect() : handleOpenModal(f.modalType!))}
                       className={`flex-1 py-2 rounded-lg text-sm font-medium flex items-center justify-center gap-2 transition-all ${connected ? 'bg-green-100 text-green-700' : `bg-gradient-to-r ${colors.gradient} text-white hover:opacity-90`}`}>
-                      {connected ? <><Check className="w-4 h-4" /> Verbunden</> : <><Link className="w-4 h-4" /> Verbinden</>}
+                      {connected ? <><Check className="w-4 h-4" /> Verbunden</> : <><Link className="w-4 h-4" /> {isCal ? 'Google verbinden' : 'Verbinden'}</>}
                     </button>
                   )}
                   {f.hasView && <button onClick={onOpenContacts} className="px-3 py-2 rounded-lg text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200 flex items-center gap-1"><Eye className="w-4 h-4" /> Ansehen</button>}
@@ -95,6 +137,33 @@ const OrganisationFeatures: React.FC<OrganisationFeaturesProps> = ({ onOpenConta
                     </button>
                   )}
                 </div>
+
+                {/* Echte Kalender-Termine (WP-3) */}
+                {isCal && googleConnected && (
+                  <div className="mt-4 pt-4 border-t border-gray-100">
+                    <p className="text-xs font-semibold text-gray-500 mb-2">Nächste Termine</p>
+                    {googleEvents.length === 0 ? (
+                      <p className="text-sm text-gray-400">Keine anstehenden Termine.</p>
+                    ) : (
+                      <ul className="space-y-2">
+                        {googleEvents.slice(0, 4).map((ev) => (
+                          <li key={ev.id} className="flex items-start gap-2 text-sm">
+                            <Clock className="w-4 h-4 text-blue-500 flex-shrink-0 mt-0.5" />
+                            <span>
+                              <span className="font-medium text-gray-800">{ev.summary}</span>
+                              <span className="block text-xs text-gray-500">{formatEventDate(ev.start, ev.allDay)}</span>
+                            </span>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                )}
+                {isCal && !googleConnected && googleLoading && (
+                  <div className="mt-4 pt-4 border-t border-gray-100 text-xs text-gray-400 flex items-center gap-2">
+                    <Sparkles className="w-3 h-3 animate-pulse" /> Prüfe Google-Verbindung …
+                  </div>
+                )}
               </div>
             );
           })}
