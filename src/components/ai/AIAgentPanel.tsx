@@ -46,8 +46,8 @@ const AIAgentPanel: React.FC<Props> = ({ isOpen, onClose, onOpenAuth, initialRou
 
   const loadKnowledge = async () => {
     if (!user) return;
-    const { data } = await supabase.from('user_knowledge_profiles').select('*').eq('user_id', user.id).single();
-    const { data: iqData } = await supabase.from('user_iq_profiles').select('*').eq('user_id', user.id).single();
+    const { data } = await supabase.from('user_knowledge_profiles').select('*').eq('user_id', user.id).maybeSingle();
+    const { data: iqData } = await supabase.from('iq_profiles').select('*').eq('user_id', user.id).maybeSingle();
     if (iqData) setIqProfile(iqData);
     if (data) setKnowledge(data);
     const name = data?.nickname || user.full_name?.split(' ')[0] || '';
