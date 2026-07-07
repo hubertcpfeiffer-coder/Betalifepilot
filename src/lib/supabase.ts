@@ -8,7 +8,24 @@ if (!supabaseUrl || !supabaseKey) {
   throw new Error('Missing required Supabase environment variables');
 }
 
-const supabase = createClient(supabaseUrl, supabaseKey);
+// R-12b (Option A): Custom-Auth-RLS. Bei jedem Request den Klartext-Session-Token
+// als Header `x-mio-session` mitschicken. Der PostgREST db-pre-request-Hook löst ihn
+// serverseitig zu app.user_id auf; RLS filtert jede Tabelle auf den Owner.
+// Kein Token -> kein Header -> RLS liefert 0 Zeilen (deny-by-default).
+const mioFetch: typeof fetch = (input, init = {}) => {
+  const headers = new Headers(init.headers as HeadersInit | undefined);
+  try {
+    const token = typeof localStorage !== 'undefined' ? localStorage.getItem('mio_session') : null;
+    if (token) headers.set('x-mio-session', token);
+  } catch {
+    /* localStorage nicht verfügbar (SSR/Guard) – ohne Header weiter */
+  }
+  return fetch(input, { ...init, headers });
+};
+
+const supabase = createClient(supabaseUrl, supabaseKey, {
+  global: { fetch: mioFetch },
+});
 
 // Simple hash function for password (Note: In production, use server-side bcrypt)
 export async function hashPassword(password: string): Promise<string> {
